@@ -22,14 +22,6 @@ public class ShedullingContext : DbContext
         => options.UseSqlite($"Data Source={DbPath}");
 }
 
-public class Cliente
-{
-    public int Id { get; set; }
-    public string Nome { get; set; }
-    public string Telefone { get; set; }
-    public List<Agendamento> Agendamentos { get; set; } = new();
-}
-
 public class Servico
 {
     public int Id { get; set; }

@@ -2,42 +2,61 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
-using var db = new ShedullingContext(); // Conecta ao contexto de agendamento
-
-// Exibe o caminho do banco de dados
-Console.WriteLine($"Database path: {db.DbPath}.");
-
-// CREATE: Inserindo um novo cliente
-Console.WriteLine("Inserting a new client");
-db.Add(new Cliente { Nome = "João Silva", Telefone = "123456789" });
-await db.SaveChangesAsync();
-
-// READ: Consultando o primeiro cliente
-Console.WriteLine("Querying for a client");
-var cliente = await db.Cliente
-    .OrderBy(c => c.Id)
-    .FirstAsync();
-Console.WriteLine($"Cliente encontrado: {cliente.Nome}, Telefone: {cliente.Telefone}");
-
-// UPDATE: Atualizando o cliente e adicionando um agendamento
-Console.WriteLine("Updating the client and adding a scheduling");
-cliente.Nome = "João da Silva";
-var servico = new Servico { Tipo = "Corte de Cabelo", Tempo = "30 minutos", Preco = "50,00" };
-var barbeiro = new Barbeiro { Nome = "Carlos Barbeiro", Telefone = "987654321" };
-
-db.Servico.Add(servico);
-db.Barbeiro.Add(barbeiro);
-await db.SaveChangesAsync();
-
-cliente.Agendamentos.Add(new Agendamento
+class Program
 {
-    DataHora = DateTime.Now.AddDays(1),
-    ServicoId = servico.Id,
-    BarbeiroId = barbeiro.Id
-});
-await db.SaveChangesAsync();
+    static void Main(string[] args)
+    {
+        using (var db = new ShedullingContext())
+        {
+            // CREATE: Adicionando clientes
+            db.Cliente.Add(new Cliente { Nome = "João" });
+            db.Cliente.Add(new Cliente { Nome = "Maria" });
+            db.SaveChanges();
 
-// DELETE: Removendo o cliente
-Console.WriteLine("Deleting the client");
-db.Remove(cliente);
-await db.SaveChangesAsync();
+            // READ: Listando clientes
+            ReadClientes(db);
+
+            // UPDATE: Atualizando cliente
+            UpdateCliente(1, "João Silva", db);
+
+            // DELETE: Removendo todos os clientes
+            DeleteAllClientes(db);
+        }
+    }
+
+    // READ: Listar todos os clientes
+    static void ReadClientes(ShedullingContext db)
+    {
+        foreach (var cliente in db.Cliente)
+        {
+            Console.WriteLine($"Cliente: {cliente.Nome}");
+        }
+    }
+
+    // UPDATE: Atualizar um cliente pelo ID
+    static void UpdateCliente(int id, string nome, ShedullingContext db)
+    {
+        var cliente = db.Cliente.Find(id);
+        if (cliente != null)
+        {
+            cliente.Nome = nome;
+            db.SaveChanges();
+            Console.WriteLine($"Cliente atualizado: {cliente.Nome}");
+        }
+        else
+        {
+            Console.WriteLine($"Cliente com ID {id} não encontrado.");
+        }
+    }
+
+    // DELETE: Remover todos os clientes
+    static void DeleteAllClientes(ShedullingContext db)
+    {
+        foreach (var cliente in db.Cliente.ToList())
+        {
+            db.Cliente.Remove(cliente);
+        }
+        db.SaveChanges();
+        Console.WriteLine("Todos os clientes foram removidos.");
+    }
+}
